@@ -26,7 +26,6 @@ const protegerRuta = async (req, res, next) => {
         return res.clearCookie('_token').redirect('/auth/login')
     }
 
-    next()
 }
 
 export default protegerRuta
