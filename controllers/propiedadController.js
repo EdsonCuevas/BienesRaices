@@ -3,8 +3,7 @@ import { Precio, Categoria, Propiedad } from '../models/index.js'
 
 const admin = (req, res) => {
     res.render('propiedades/admin', {
-        pagina: 'Mis Propiedades',
-        barra: true
+        pagina: 'Mis Propiedades'
     })
 }
 
@@ -18,7 +17,6 @@ const crear = async (req, res) => {
 
     res.render('propiedades/crear', {
         pagina: 'Crear Propiedad',
-        barra: true,
         csrfToken: req.csrfToken(),
         categorias: categorias,
         precios: precios,
@@ -40,7 +38,6 @@ const guardar = async (req, res) => {
 
         return res.render('propiedades/crear', {
             pagina: 'Crear Propiedad',
-            barra: true,
             csrfToken: req.csrfToken(),
             categorias: categorias,
             precios: precios,
@@ -65,15 +62,15 @@ const guardar = async (req, res) => {
             calle,
             lat,
             lng,
-            PrecioId: precio,
-            CategoriaId: categoria,
+            precioId: precio,
+            categoriaId: categoria,
             usuarioId,
             imagen: '',
 
         })
 
         const { id } = PropiedadGuardada
-        res.redirect(`propiedades/agregar-imagen/${id}`)
+        res.redirect(`/propiedades/agregar-imagen/${id}`)
 
     } catch (error) {
         console.log(error)
@@ -81,8 +78,36 @@ const guardar = async (req, res) => {
 
 }
 
+const agregarImagen = async (req, res) => {
+
+    const { id } = req.params
+
+    // Validar que la propiedad exista
+    const propiedad = await Propiedad.findByPk(id)
+
+    if (!propiedad) {
+        return res.redirect('/mis-propiedades')
+    }
+
+    // Validar que la propiedad no este publicada
+    if (propiedad.publicado) {
+        return res.redirect('/mis-propiedades')
+    }
+
+    // Validar que la propiedad pertenece a quien visite esta pagina
+    if (req.usuario.id !== propiedad.usuarioId) {
+        return res.redirect('/mis-propiedades')
+    }
+
+    res.render('propiedades/agregar-imagen', {
+        pagina: 'Agregar Imagen'
+    })
+
+}
+
 export {
     admin,
     crear,
-    guardar
+    guardar,
+    agregarImagen
 }
