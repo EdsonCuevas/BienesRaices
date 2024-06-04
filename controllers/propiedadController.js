@@ -1,4 +1,5 @@
 import { validationResult } from 'express-validator'
+import { unlink } from 'node:fs/promises'
 import { Precio, Categoria, Propiedad } from '../models/index.js'
 
 const admin = async (req, res) => {
@@ -18,6 +19,7 @@ const admin = async (req, res) => {
     res.render('propiedades/admin', {
         pagina: 'Mis Propiedades',
         propiedades,
+        csrfToken: req.csrfToken()
     })
 }
 
@@ -257,6 +259,32 @@ const guardarCambios = async (req, res) => {
 
 }
 
+const eliminar = async (req, res) => {
+
+    const { id } = req.params
+
+    // Validar que la propiedad exista
+    const propiedad = await Propiedad.findByPk(id)
+
+    if (!propiedad) {
+        return res.redirect('/mis-propiedades')
+    }
+
+    // Revisar el creador y el editor sean el mismo
+    if (propiedad.usuarioId !== req.usuario.id) {
+        return res.redirect('/mis-propiedades')
+    }
+
+    // Eliminar la imagen asociada
+    await unlink(`public/uploads/${propiedad.imagen}`)
+
+    // Eliminar la propiedad
+    await propiedad.destroy()
+    res.redirect('/mis-propiedades')
+
+
+}
+
 export {
     admin,
     crear,
@@ -264,5 +292,6 @@ export {
     agregarImagen,
     almacenarImagen,
     editar,
-    guardarCambios
+    guardarCambios,
+    eliminar
 }
