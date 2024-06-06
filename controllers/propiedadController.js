@@ -1,26 +1,60 @@
 import { validationResult } from 'express-validator'
 import { unlink } from 'node:fs/promises'
 import { Precio, Categoria, Propiedad } from '../models/index.js'
+import { where } from 'sequelize'
 
 const admin = async (req, res) => {
 
-    const { id } = req.usuario
+    // Leer QueryString
+    const { pagina: paginaActual } = req.query
 
-    const propiedades = await Propiedad.findAll({
-        where: {
-            usuarioId: id
-        },
-        include: [
-            { model: Categoria, as: 'categoria' },
-            { model: Precio, as: 'precio' }
-        ]
-    })
+    const expresion = /^[0-9]$/
 
-    res.render('propiedades/admin', {
-        pagina: 'Mis Propiedades',
-        propiedades,
-        csrfToken: req.csrfToken()
-    })
+    if (!expresion.test(paginaActual)) {
+        return res.redirect('/mis-propiedades?pagina=1')
+    }
+
+    try {
+        const { id } = req.usuario
+
+        //Limites y Offset para el paginador
+        const limit = 5;
+        const offset = ((paginaActual * limit) - limit)
+
+        const [propiedades, total] = await Promise.all([
+            Propiedad.findAll({
+                limit,
+                offset,
+                where: {
+                    usuarioId: id
+                },
+                include: [
+                    { model: Categoria, as: 'categoria' },
+                    { model: Precio, as: 'precio' }
+                ]
+            }),
+            Propiedad.count({
+                where: {
+                    usuarioId: id
+                }
+            })
+        ])
+
+        res.render('propiedades/admin', {
+            pagina: 'Mis Propiedades',
+            propiedades,
+            csrfToken: req.csrfToken(),
+            paginas: Math.ceil(total / limit),
+            paginaActual,
+            total,
+            offset,
+            limit,
+        })
+
+    } catch (error) {
+        console.log(error)
+    }
+
 }
 
 // Formulario para crear una nueva propiedad
