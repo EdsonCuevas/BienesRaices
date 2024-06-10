@@ -1,5 +1,4 @@
 import { check, validationResult, body } from 'express-validator'
-import jwt from 'jsonwebtoken'
 import bcrypt from 'bcrypt'
 import Usuario from '../models/Usuario.js'
 import { generarJWT, generarId } from '../helpers/tokens.js'
@@ -72,6 +71,10 @@ const autenticar = async (req, res) => {
         //sameSite: true
     }).redirect('/mis-propiedades')
 
+}
+
+const cerrarSesion = (req, res) => {
+    return res.clearCookie('_token').status(200).redirect('/auth/login')
 }
 
 const formularioRegistro = (req, res) => {
@@ -296,6 +299,7 @@ const nuevoPassword = async (req, res) => {
 export {
     formularioLogin,
     autenticar,
+    cerrarSesion,
     formularioRegistro,
     registrar,
     confirmar,
