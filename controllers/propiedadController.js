@@ -320,6 +320,11 @@ const eliminar = async (req, res) => {
 
 }
 
+// Modificar el estado de la propiedad
+const cambiarEstado = async (req, res) => {
+    console.log("cambiando estado...")
+}
+
 // Muestra una propiedad
 const mostrarPropiedad = async (req, res) => {
 
@@ -445,6 +450,7 @@ export {
     editar,
     guardarCambios,
     eliminar,
+    cambiarEstado,
     mostrarPropiedad,
     enviarMensaje,
     verMensajes
